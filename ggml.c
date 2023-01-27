@@ -113,6 +113,8 @@ typedef void* thread_ret_t;
 #include <Accelerate/Accelerate.h>
 #elif GGML_USE_OPENBLAS
 #include <cblas.h>
+#else
+#warning no acceleration
 #endif
 
 #undef MIN

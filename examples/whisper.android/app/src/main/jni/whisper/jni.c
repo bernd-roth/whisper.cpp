@@ -162,7 +162,7 @@ Java_com_whispercppdemo_whisper_WhisperLib_00024Companion_freeContext(
 
 JNIEXPORT void JNICALL
 Java_com_whispercppdemo_whisper_WhisperLib_00024Companion_fullTranscribe(
-        JNIEnv *env, jobject thiz, jlong context_ptr, jfloatArray audio_data) {
+        JNIEnv *env, jobject thiz, jlong context_ptr, jfloatArray audio_data, jstring language_str) {
     UNUSED(thiz);
     struct whisper_context *context = (struct whisper_context *) context_ptr;
     jfloat *audio_data_arr = (*env)->GetFloatArrayElements(env, audio_data, NULL);
@@ -178,8 +178,11 @@ Java_com_whispercppdemo_whisper_WhisperLib_00024Companion_fullTranscribe(
     params.print_progress = false;
     params.print_timestamps = true;
     params.print_special = false;
-    params.translate = false;
-    params.language = "en";
+    params.translate = true;
+    const char *language_chars = (*env)->GetStringUTFChars(env, language_str, NULL);
+    // XXX FIXME (*env)->ReleaseStringUTFChars(env, language_str, language_chars);
+
+    params.language = language_chars;
     params.n_threads = max_threads;
     params.offset_ms = 0;
     params.no_context = true;
@@ -211,6 +214,18 @@ Java_com_whispercppdemo_whisper_WhisperLib_00024Companion_getTextSegment(
     UNUSED(thiz);
     struct whisper_context *context = (struct whisper_context *) context_ptr;
     const char *text = whisper_full_get_segment_text(context, index);
+    jstring string = (*env)->NewStringUTF(env, text);
+    return string;
+}
+
+JNIEXPORT jint JNICALL
+        Java_com_whispercppdemo_whisper_WhisperLib_00024Companion_getLangMaxId(JNIEnv *env, jobject thiz) {
+    return whisper_lang_max_id();
+
+}
+JNIEXPORT jstring JNICALL
+Java_com_whispercppdemo_whisper_WhisperLib_00024Companion_getLangStr(JNIEnv *env, jobject thiz, jint index) {
+    const char* text = whisper_lang_str(index);
     jstring string = (*env)->NewStringUTF(env, text);
     return string;
 }

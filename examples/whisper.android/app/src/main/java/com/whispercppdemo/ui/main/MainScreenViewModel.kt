@@ -3,6 +3,7 @@ package com.whispercppdemo.ui.main
 import android.app.Application
 import android.content.Context
 import android.media.MediaPlayer
+import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,10 +22,25 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.*
 
 private const val LOG_TAG = "MainScreenViewModel"
 
+fun sortLanguages(codes: List<String>): List<String> {
+    data class Language(val code: String, val text: String)
+    return codes.map({
+        val code = it
+        val text = Locale(code).displayLanguage ?: code
+        Language(code, text)
+    }).sortedBy({ it.text }).map({ it.code })
+}
+
 class MainScreenViewModel(private val application: Application) : ViewModel() {
+    var speaker = TextToSpeech(application.applicationContext, {
+
+    })
+    val languages: List<String> = sortLanguages(WhisperContext.getLanguages())
+    var language: String by mutableStateOf("de")
     var canTranscribe by mutableStateOf(false)
         private set
     var dataLog by mutableStateOf("")
@@ -117,7 +133,12 @@ class MainScreenViewModel(private val application: Application) : ViewModel() {
             printMessage("Reading wave samples...\n")
             val data = readAudioSamples(file)
             printMessage("Transcribing data...\n")
-            val text = whisperContext?.transcribeData(data)
+            val beginning = System.currentTimeMillis()
+            val text = whisperContext?.transcribeData(data, language)
+            val end = System.currentTimeMillis()
+            printMessage("Transcription duration was: " + (end - beginning) + " ms\n")
+            speaker.setLanguage(Locale.ENGLISH)
+            speaker.speak(text, TextToSpeech.QUEUE_FLUSH, null)
             printMessage("Done: $text\n")
         } catch (e: Exception) {
             Log.w(LOG_TAG, e)
