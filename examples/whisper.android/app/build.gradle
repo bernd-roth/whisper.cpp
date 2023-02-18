@@ -9,14 +9,19 @@ android {
 
     defaultConfig {
         applicationId "com.whispercppdemo"
-        minSdk 26
-        targetSdk 32
+        minSdk 30
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true
+        }
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++14"
+            }
         }
     }
 
@@ -42,8 +47,11 @@ android {
     }
     ndkVersion "25.1.8937393"
     externalNativeBuild {
-        ndkBuild {
+        /* FIXME ndkBuild {
             path 'src/main/jni/whisper/Android.mk'
+        } */
+        cmake {
+            path "src/main/jni/whisper/CMakeLists.txt"
         }
     }
     packagingOptions {
